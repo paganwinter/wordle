@@ -23,36 +23,6 @@ body {
   overflow: hidden;
 }
 
-#keyboard {
-  /* margin: 0 10px; */
-  margin: 0;
-  user-select: none;
-}
-#keyboard .row {
-  display: flex;
-  width: 100%;
-  margin: 0 auto 8px;
-  touch-action: manipulation;
-}
-#keyboard button {
-  font-family: inherit;
-  font-weight: bold;
-  border: 0;
-  padding: 0;
-  margin: 0 6px 0 0;
-  height: 58px;
-  border-radius: 4px;
-  cursor: pointer;
-  user-select: none;
-  /* background-color: var(--key-bg);
-  color: var(--key-text-color); */
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-transform: uppercase;
-  -webkit-tap-highlight-color: rgba(0,0,0,0.3);
-}
 
 table {
   border: 1px solid #eee;
@@ -93,6 +63,49 @@ table th {
   background: #86888a;
   color: #fff;
 }
+
+#solution-container {
+  position: relative;
+}
+#solution {
+  width: 50%;
+  margin: 0 auto;
+  position: relative;
+  text-align: center;
+}
+
+
+#keyboard {
+  /* margin: 0 10px; */
+  margin: 0;
+  user-select: none;
+}
+#keyboard .row {
+  display: flex;
+  width: 100%;
+  margin: 0 auto 8px;
+  touch-action: manipulation;
+}
+#keyboard button {
+  font-family: inherit;
+  font-weight: bold;
+  border: 0;
+  padding: 0;
+  margin: 0 6px 0 0;
+  height: 58px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  /* background-color: var(--key-bg);
+  color: var(--key-text-color); */
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.3);
+}
+
 </style>
 </head>
 <body>
@@ -107,6 +120,9 @@ table th {
           </td>
         </tr>
       </table>
+    </div>
+    <div id="solution-container">
+      <div id="solution"v-if="showSolution">{{ solution }}</div>
     </div>
     <div id="keyboard">
       <div class="row">
@@ -153,68 +169,55 @@ table th {
 const WORD_LENGTH = 5
 const ATTEMPTS = 6
 
+const testData = [
+  {
+    done: false,
+    letters: [
+      { letter: 'h', status: 'correct' },
+      { letter: 'e', status: 'correct' },
+      { letter: 'l', status: 'correct' },
+      { letter: 'l', status: 'position' },
+      { letter: 'o', status: 'absent' },
+    ],
+  },
+]
+
+
 window.onload = async function () {
   const allWords = [...wordList1, ...wordList2]
 
-  const solution = allWords[Math.floor(Math.random() * allWords.length)]
-  // const solution = wordList1[Math.floor(Math.random() * wordList1.length)]
-  console.log(solution)
 
-  const attempts = []
-  for (let i = 0; i < ATTEMPTS; i++) {
-    const letters = []
-    for (let j = 0; j < WORD_LENGTH; j++) {
-      letters.push({
-        letter: '',
-        status: null,
-      })
-    }
+  function start() {
+    const solution = allWords[Math.floor(Math.random() * allWords.length)]
+    // const solution = wordList1[Math.floor(Math.random() * wordList1.length)]
+    console.log(solution)
 
-    const item = {
-      done: false,
-      letters,
+    const attempts = []
+    for (let i = 0; i < ATTEMPTS; i++) {
+      const letters = []
+      for (let j = 0; j < WORD_LENGTH; j++) {
+        letters.push({
+          letter: '',
+          status: null,
+        })
+      }
+
+      const item = {
+        done: false,
+        letters,
+      }
+      attempts.push(item)
     }
-    attempts.push(item)
+    return { solution, attempts }
   }
-  console.log(attempts)
 
-  const testData = [
-          {
-            done: true,
-            letters: [
-              { letter: 'a', status: 'correct' },
-              { letter: 'b', status: 'correct' },
-              { letter: 'c', status: 'correct' },
-              { letter: 'd', status: 'position' },
-              { letter: 'e', status: 'absent' },
-            ],
-          },
-          {
-            done: false,
-            letters: [{}, {}, {}, {}, {}],
-          },
-          {
-            done: false,
-            letters: [{}, {}, {}, {}, {}],
-          },
-          {
-            done: false,
-            letters: [{}, {}, {}, {}, {}],
-          },
-          {
-            done: false,
-            letters: [{}, {}, {}, {}, {}],
-          },
-          {
-            done: false,
-            letters: [{}, {}, {}, {}, {}],
-          },
-        ]
+  const { solution, attempts } = start()
 
   const App = {
     data() {
       return {
         solution,
+        showSolution: false,
         attempts,
       }
     },
@@ -250,6 +253,13 @@ window.onload = async function () {
         console.log('clicked submit')
 
         // get current attempt
+        const attemptsCount = this.attempts.filter(a => a.done).length
+        console.log({attemptsCount})
+        if (attemptsCount >= ATTEMPTS) {
+          console.warn('used up all attempts')
+          return
+        }
+
         const curAttemptIdx = this.attempts.findIndex(a => !a.done)
         const attemptRef = this.attempts[curAttemptIdx]
 
@@ -275,7 +285,6 @@ window.onload = async function () {
           alert('yay')
         } else {
           attemptRef.letters.forEach((l, i) => {
-            console.log(l.letter, this.solution[i])
             if (l.letter === this.solution[i]) {
               l.status = 'correct'
             } else if (this.solution.includes(l.letter)) {
@@ -284,6 +293,11 @@ window.onload = async function () {
               l.status = 'absent'
             }
           })
+
+          if (curAttemptIdx === (ATTEMPTS - 1)) {
+            alert(this.solution)
+            this.showSolution = true
+          }
         }
       },
       erase(ev) {
