@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>Wordle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body {
   font-family: Arial;
@@ -8,6 +9,50 @@ body {
   margin: 0;
   font-size: 14px;
 }
+
+#main {
+  width: 100%;
+  height: 100%;
+}
+
+#board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+#keyboard {
+  margin: 0 10px;
+  user-select: none;
+}
+#keyboard .row {
+  display: flex;
+  width: 100%;
+  margin: 0 auto 8px;
+  touch-action: manipulation;
+}
+#keyboard button {
+  font-family: inherit;
+  font-weight: bold;
+  border: 0;
+  padding: 0;
+  margin: 0 6px 0 0;
+  height: 58px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  /* background-color: var(--key-bg);
+  color: var(--key-text-color); */
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.3);
+}
+
 table {
   border: 1px solid #eee;
   border-collapse: collapse;
@@ -52,49 +97,53 @@ table th {
 <body>
 
 <div id="app">
-  <table>
-    <tr v-for="attempt in attempts">
-      <td v-for="item in attempt.letters" :class="item.status" class="letter">
-        <div class="letter-box">{{ item.letter }}</div>
-      </td>
-    </tr>
-  </table>
-  <div id=""keyboard>
-    <div>
-      <button @click="submit" data-key="enter">enter</button>
-      <button @click="erase" data-key="back">back</button>
+  <div id="main">
+    <div id="board-container">
+      <table id="board">
+        <tr v-for="attempt in attempts">
+          <td v-for="item in attempt.letters" :class="item.status" class="letter">
+            <div class="letter-box">{{ item.letter }}</div>
+          </td>
+        </tr>
+      </table>
     </div>
-    <div class="kb-row">
-      <button @click="clicked" data-key="q">q</button>
-      <button @click="clicked" data-key="w">w</button>
-      <button @click="clicked" data-key="e">e</button>
-      <button @click="clicked" data-key="r">r</button>
-      <button @click="clicked" data-key="t">t</button>
-      <button @click="clicked" data-key="y">y</button>
-      <button @click="clicked" data-key="u">u</button>
-      <button @click="clicked" data-key="i">i</button>
-      <button @click="clicked" data-key="o">o</button>
-      <button @click="clicked" data-key="p">p</button>
-    </div>
-    <div class="kb-row">
-      <button @click="clicked" data-key="a">a</button>
-      <button @click="clicked" data-key="s">s</button>
-      <button @click="clicked" data-key="d">d</button>
-      <button @click="clicked" data-key="f">f</button>
-      <button @click="clicked" data-key="g">g</button>
-      <button @click="clicked" data-key="h">h</button>
-      <button @click="clicked" data-key="j">j</button>
-      <button @click="clicked" data-key="k">k</button>
-      <button @click="clicked" data-key="l">l</button>
-    </div>
-    <div class="kb-row">
-      <button @click="clicked" data-key="z">z</button>
-      <button @click="clicked" data-key="x">x</button>
-      <button @click="clicked" data-key="c">c</button>
-      <button @click="clicked" data-key="v">v</button>
-      <button @click="clicked" data-key="b">b</button>
-      <button @click="clicked" data-key="n">n</button>
-      <button @click="clicked" data-key="m">m</button>
+    <div id="keyboard">
+      <div class="row">
+        <button @click="submit" data-key="enter">enter</button>
+        <button @click="erase" data-key="back">back</button>
+      </div>
+      <div class="row">
+        <button @click="clicked" data-key="q">q</button>
+        <button @click="clicked" data-key="w">w</button>
+        <button @click="clicked" data-key="e">e</button>
+        <button @click="clicked" data-key="r">r</button>
+        <button @click="clicked" data-key="t">t</button>
+        <button @click="clicked" data-key="y">y</button>
+        <button @click="clicked" data-key="u">u</button>
+        <button @click="clicked" data-key="i">i</button>
+        <button @click="clicked" data-key="o">o</button>
+        <button @click="clicked" data-key="p">p</button>
+      </div>
+      <div class="row">
+        <button @click="clicked" data-key="a">a</button>
+        <button @click="clicked" data-key="s">s</button>
+        <button @click="clicked" data-key="d">d</button>
+        <button @click="clicked" data-key="f">f</button>
+        <button @click="clicked" data-key="g">g</button>
+        <button @click="clicked" data-key="h">h</button>
+        <button @click="clicked" data-key="j">j</button>
+        <button @click="clicked" data-key="k">k</button>
+        <button @click="clicked" data-key="l">l</button>
+      </div>
+      <div class="row">
+        <button @click="clicked" data-key="z">z</button>
+        <button @click="clicked" data-key="x">x</button>
+        <button @click="clicked" data-key="c">c</button>
+        <button @click="clicked" data-key="v">v</button>
+        <button @click="clicked" data-key="b">b</button>
+        <button @click="clicked" data-key="n">n</button>
+        <button @click="clicked" data-key="m">m</button>
+      </div>
     </div>
   </div>
 </div>
@@ -107,6 +156,7 @@ window.onload = async function () {
   const allWords = [...wordList1, ...wordList2]
 
   const solution = allWords[Math.floor(Math.random() * allWords.length)]
+  // const solution = wordList1[Math.floor(Math.random() * wordList1.length)]
   console.log(solution)
 
   const attempts = []
