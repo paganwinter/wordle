@@ -100,16 +100,34 @@ table th {
 </div>
 
 <script>
-const wordList = [
-  'abcde',
-  'hello',
-]
+const WORD_LENGTH = 5
+const ATTEMPTS = 6
+
 window.onload = async function () {
-  const App = {
-    data() {
-      return {
-        solution: 'hello',
-        attempts: [
+  const allWords = [...wordList1, ...wordList2]
+
+  const solution = allWords[Math.floor(Math.random() * allWords.length)]
+  console.log(solution)
+
+  const attempts = []
+  for (let i = 0; i < ATTEMPTS; i++) {
+    const letters = []
+    for (let j = 0; j < WORD_LENGTH; j++) {
+      letters.push({
+        letter: '',
+        status: null,
+      })
+    }
+
+    const item = {
+      done: false,
+      letters,
+    }
+    attempts.push(item)
+  }
+  console.log(attempts)
+
+  const testData = [
           {
             done: true,
             letters: [
@@ -140,7 +158,13 @@ window.onload = async function () {
             done: false,
             letters: [{}, {}, {}, {}, {}],
           },
-        ],
+        ]
+
+  const App = {
+    data() {
+      return {
+        solution,
+        attempts,
       }
     },
     methods: {
@@ -181,12 +205,12 @@ window.onload = async function () {
         const word = attemptRef.letters.map(l => l.letter).join('')
         console.log(word)
 
-        if (word.length < 5) {
+        if (word.length < WORD_LENGTH) {
           console.warn('incomplete word')
           return
         }
 
-        if (!wordList.includes(word)) {
+        if (!wordList1.includes(word) && !wordList2.includes(word)) {
           console.warn('invalid word')
           alert('invalid word')
           return
@@ -236,5 +260,6 @@ window.onload = async function () {
 }
 </script>
 <script src="js/vue.global.js"></script>
+<script src="js/words.js"></script>
 </body>
 </html>
