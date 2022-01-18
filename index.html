@@ -92,7 +92,8 @@ table th {
   border: 0;
   padding: 0;
   margin: 0 6px 0 0;
-  height: 58px;
+  height: 60px;
+  width: 60px;
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
@@ -106,6 +107,18 @@ table th {
   -webkit-tap-highlight-color: rgba(0,0,0,0.3);
 }
 
+#keyboard button[data-status=correct] {
+  background: #6aaa64;
+  color: #fff;
+}
+#keyboard button[data-status=position] {
+  background: #c9b458;
+  color: #fff;
+}
+#keyboard button[data-status=absent] {
+  background: #86888a;
+  color: #fff;
+}
 </style>
 </head>
 <body>
@@ -122,44 +135,57 @@ table th {
       </table>
     </div>
     <div id="solution-container">
-      <div id="solution"v-if="showSolution">{{ solution }}</div>
+      <div id="solution"v-if="showSolution">{{ word }}</div>
     </div>
     <div id="keyboard">
-      <div class="row">
-        <button @click="submit" data-key="enter">enter</button>
-        <button @click="erase" data-key="back">back</button>
+      <div class="row-container">
+        <div class="row">
+          <button @click="newGame" data-key="new-game">new game</button>
+        </div>
       </div>
-      <div class="row">
-        <button @click="clicked" data-key="q">q</button>
-        <button @click="clicked" data-key="w">w</button>
-        <button @click="clicked" data-key="e">e</button>
-        <button @click="clicked" data-key="r">r</button>
-        <button @click="clicked" data-key="t">t</button>
-        <button @click="clicked" data-key="y">y</button>
-        <button @click="clicked" data-key="u">u</button>
-        <button @click="clicked" data-key="i">i</button>
-        <button @click="clicked" data-key="o">o</button>
-        <button @click="clicked" data-key="p">p</button>
+      <div class="row-container">
+        <div class="row">
+          <button @click="submit" data-key="submit">submit</button>
+          <button @click="erase" data-key="back">back</button>
+        </div>
       </div>
-      <div class="row">
-        <button @click="clicked" data-key="a">a</button>
-        <button @click="clicked" data-key="s">s</button>
-        <button @click="clicked" data-key="d">d</button>
-        <button @click="clicked" data-key="f">f</button>
-        <button @click="clicked" data-key="g">g</button>
-        <button @click="clicked" data-key="h">h</button>
-        <button @click="clicked" data-key="j">j</button>
-        <button @click="clicked" data-key="k">k</button>
-        <button @click="clicked" data-key="l">l</button>
+      <div class="row-container">
+        <div class="row">
+          <button @click="clicked" data-key="q">q</button>
+          <button @click="clicked" data-key="w">w</button>
+          <button @click="clicked" data-key="e">e</button>
+          <button @click="clicked" data-key="r">r</button>
+          <button @click="clicked" data-key="t">t</button>
+          <button @click="clicked" data-key="y">y</button>
+          <button @click="clicked" data-key="u">u</button>
+          <button @click="clicked" data-key="i">i</button>
+          <button @click="clicked" data-key="o">o</button>
+          <button @click="clicked" data-key="p">p</button>
+        </div>
       </div>
-      <div class="row">
-        <button @click="clicked" data-key="z">z</button>
-        <button @click="clicked" data-key="x">x</button>
-        <button @click="clicked" data-key="c">c</button>
-        <button @click="clicked" data-key="v">v</button>
-        <button @click="clicked" data-key="b">b</button>
-        <button @click="clicked" data-key="n">n</button>
-        <button @click="clicked" data-key="m">m</button>
+      <div class="row-container">
+        <div class="row" style="width: 90%;">
+          <button @click="clicked" data-key="a">a</button>
+          <button @click="clicked" data-key="s">s</button>
+          <button @click="clicked" data-key="d">d</button>
+          <button @click="clicked" data-key="f">f</button>
+          <button @click="clicked" data-key="g">g</button>
+          <button @click="clicked" data-key="h">h</button>
+          <button @click="clicked" data-key="j">j</button>
+          <button @click="clicked" data-key="k">k</button>
+          <button @click="clicked" data-key="l">l</button>
+        </div>
+      </div>
+      <div class="row-container">
+          <div class="row" style="width: 70%;">
+          <button @click="clicked" data-key="z">z</button>
+          <button @click="clicked" data-key="x">x</button>
+          <button @click="clicked" data-key="c">c</button>
+          <button @click="clicked" data-key="v">v</button>
+          <button @click="clicked" data-key="b">b</button>
+          <button @click="clicked" data-key="n">n</button>
+          <button @click="clicked" data-key="m">m</button>
+        </div>
       </div>
     </div>
   </div>
@@ -167,7 +193,7 @@ table th {
 
 <script>
 const WORD_LENGTH = 5
-const ATTEMPTS = 6
+const NO_OF_ATTEMPTS = 6
 
 const testData = [
   {
@@ -182,53 +208,62 @@ const testData = [
   },
 ]
 
+function b64Enc(str) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+function b64Dec(b64Str) {
+  return atob(b64Str.replace(/\-/g, '+').replace(/_/g, '/'))
+}
+
+function initGame({ wordIdx, wordLength = WORD_LENGTH, noOfAttempts = NO_OF_ATTEMPTS } = {}) {
+  wordIdx = wordIdx ?? Math.floor(Math.random() * wordList1.length)
+  // const word = allWords[wordIdx]
+  const word = wordList1[wordIdx]
+
+  const attempts = []
+  for (let i = 0; i < noOfAttempts; i++) {
+    const letters = []
+    for (let j = 0; j < wordLength; j++) {
+      letters.push({ letter: '', status: null })
+    }
+
+    const item = { done: false, letters }
+    attempts.push(item)
+  }
+
+  console.log('initGame')
+  console.log({ wordIdx, wordLength, noOfAttempts, word, attempts })
+  return { wordIdx, wordLength, noOfAttempts, word, attempts }
+}
 
 window.onload = async function () {
   const allWords = [...wordList1, ...wordList2]
 
-
-  function start() {
-    // const solution = allWords[Math.floor(Math.random() * allWords.length)]
-    const solution = wordList1[Math.floor(Math.random() * wordList1.length)]
-    console.log(solution)
-
-    const attempts = []
-    for (let i = 0; i < ATTEMPTS; i++) {
-      const letters = []
-      for (let j = 0; j < WORD_LENGTH; j++) {
-        letters.push({
-          letter: '',
-          status: null,
-        })
-      }
-
-      const item = {
-        done: false,
-        letters,
-      }
-      attempts.push(item)
-    }
-    return { solution, attempts }
+  let gameParams
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get('i')) {
+    console.log('init shared game')
+    const l = searchParams.get('l') ?? undefined
+    const a = searchParams.get('a') ?? undefined
+    const i = b64Dec(searchParams.get('i'))
+    console.log({ wordIdx: i, wordLength: l, noOfAttempts: a })
+    gameParams = initGame({ wordIdx: i, wordLength: l, noOfAttempts: a })
+  } else {
+    console.log('init new game')
+    gameParams = { word: '', attempts: [] }
   }
 
-  const { solution, attempts } = start()
+  const { word, attempts } = gameParams
 
   const App = {
     data() {
       return {
-        solution,
+        word,
         showSolution: false,
         attempts,
       }
     },
     methods: {
-      // async checkNow(repo, ev) {
-      //   const repoRef = this.repos.find(r => r.name === repo.name)
-      //   console.log('checking repo', repo)
-      //   const { summary } = await fetch(`${CQC_API}/api/run-check/eais/${repo.name}`, { method: 'GET', headers: {} }).then(res => res.json())
-      //   console.log(summary)
-      //   repoRef.report.summary = summary
-      // },
       clicked(ev) {
         const letter = ev.target.getAttribute('data-key')
         console.log('clicked', letter)
@@ -255,7 +290,7 @@ window.onload = async function () {
         // get current attempt
         const attemptsCount = this.attempts.filter(a => a.done).length
         console.log({attemptsCount})
-        if (attemptsCount >= ATTEMPTS) {
+        if (attemptsCount >= NO_OF_ATTEMPTS) {
           console.warn('used up all attempts')
           return
         }
@@ -278,24 +313,32 @@ window.onload = async function () {
         }
 
         attemptRef.done = true
-        if (word === this.solution) {
+        if (word === this.word) {
           attemptRef.letters.forEach(l => {
             l.status = 'correct'
           })
           alert('yay')
         } else {
           attemptRef.letters.forEach((l, i) => {
-            if (l.letter === this.solution[i]) {
-              l.status = 'correct'
-            } else if (this.solution.includes(l.letter)) {
+            const kbKey = document.querySelector(`[data-key=${l.letter}]`)
+            if (this.word.includes(l.letter)) {
               l.status = 'position'
+              if (kbKey.getAttribute('data-status') !== 'correct') {
+                kbKey.setAttribute('data-status', 'position')
+              }
+
+              if (l.letter === this.word[i]) {
+                l.status = 'correct'
+                kbKey.setAttribute('data-status', 'correct')
+              }
             } else {
               l.status = 'absent'
+              kbKey.setAttribute('data-status', 'absent')
             }
           })
 
-          if (curAttemptIdx === (ATTEMPTS - 1)) {
-            alert(this.solution)
+          if (curAttemptIdx === (NO_OF_ATTEMPTS - 1)) {
+            alert(this.word)
             this.showSolution = true
           }
         }
@@ -316,6 +359,19 @@ window.onload = async function () {
         } else {
           console.log('nothing to erase')
         }
+      },
+      newGame(ev) {
+        const gameParams = initGame()
+        this.word = gameParams.word
+        this.attempts = gameParams.attempts
+
+        const searchParams = new URLSearchParams();
+        // searchParams.set('l', 5);
+        // searchParams.set('a', 6);
+        searchParams.set('i', b64Enc(gameParams.wordIdx));
+        // window.location.search = searchParams.toString();
+        const newPath = window.location.pathname + '?' + searchParams.toString();
+        history.pushState(null, '', newPath);
       }
     }
   }
