@@ -274,7 +274,7 @@ table th {
       </div>
     </div>
 
-    <div v-if="modal" class="modal">
+    <div v-if="modal" class="modal" @click="showModal(false)">
       <div class="modal-content">
         <div>{{ shareUrl }}</div>
         <pre v-if="resultTxt">{{ resultTxt }}</pre>
@@ -426,7 +426,7 @@ window.onload = async function () {
             .join('\n')
           console.log(resultTxt)
 
-          this.resultTxt = resultTxt
+          this.resultTxt = resultTxt + '\n'
           this.showModal(true)
         } else {
           attemptRef.letters.forEach((l, i) => {
