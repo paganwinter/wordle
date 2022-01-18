@@ -358,9 +358,9 @@ window.onload = async function () {
     data() {
       return {
         word,
-        showSolution: false,
         attempts,
         shareUrl: window.location,
+        showSolution: false,
         resultTxt: '',
         modal: false,
       }
@@ -471,16 +471,21 @@ window.onload = async function () {
         }
       },
       newGame(ev) {
+        // this.shareUrl = ''
+        // this.showSolution = false
+        // this.resultTxt = ''
+        // this.modal = false
         const gameParams = initGame()
-        this.word = gameParams.word
-        this.attempts = gameParams.attempts
+        // this.word = gameParams.word
+        // this.attempts = gameParams.attempts
+
         const searchParams = new URLSearchParams();
         // searchParams.set('l', 5);
         // searchParams.set('a', 6);
         searchParams.set('i', b64Enc(gameParams.wordIdx));
-        // window.location.search = searchParams.toString();
-        const newPath = window.location.pathname + '?' + searchParams.toString();
-        history.pushState(null, '', newPath);
+        window.location.search = searchParams.toString();
+        // const newPath = window.location.pathname + '?' + searchParams.toString();
+        // history.pushState(null, '', newPath);
       },
       doShare() {
         const shareData = {
