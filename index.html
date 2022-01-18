@@ -215,6 +215,12 @@ function b64Dec(b64Str) {
   return atob(b64Str.replace(/\-/g, '+').replace(/_/g, '/'))
 }
 
+const statusMap = {
+  correct: '🟩', // ✅
+  position: '🟨', // ⚠️
+  absent: '⬜️', // ⬛️, ❌
+}
+
 function initGame({ wordIdx, wordLength = WORD_LENGTH, noOfAttempts = NO_OF_ATTEMPTS } = {}) {
   wordIdx = wordIdx ?? Math.floor(Math.random() * wordList1.length)
   // const word = allWords[wordIdx]
@@ -289,7 +295,6 @@ window.onload = async function () {
 
         // get current attempt
         const attemptsCount = this.attempts.filter(a => a.done).length
-        console.log({attemptsCount})
         if (attemptsCount >= NO_OF_ATTEMPTS) {
           console.warn('used up all attempts')
           return
@@ -318,6 +323,20 @@ window.onload = async function () {
             l.status = 'correct'
           })
           alert('yay')
+
+          const attemptsShare = this.attempts.map(a => {
+            return a.letters.map(l => statusMap[l.status]).join('')
+          })
+            .filter(line => line)
+            .join('\n')
+          const shareData = {
+            url: window.location,
+            text: attemptsShare,
+          }
+          console.log(shareData)
+          if (navigator.share) {
+            navigator.share(shareData)
+          }
         } else {
           attemptRef.letters.forEach((l, i) => {
             const kbKey = document.querySelector(`[data-key=${l.letter}]`)
