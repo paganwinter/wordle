@@ -119,6 +119,90 @@ table th {
   background: #86888a;
   color: #fff;
 }
+
+
+#modal {
+
+}
+
+#modal-container {
+  margin: 0 auto;
+  padding-top: 60px;
+  position: relative;
+  width: 160px;
+}
+#modal-overlay {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  justify-content: center;
+  align-items: center;
+  background-color: #eee;
+  z-index: 3000;
+}
+#modal-content {
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid var(--color-tone-6);
+  background-color: var(--modal-content-bg);
+  color: var(--color-tone-1);
+  box-shadow: 0 4px 23px 0 rgb(0 0 0 / 20%);
+  width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  animation: SlideIn 200ms;
+  max-width: var(--game-max-width);
+  padding: 16px;
+  box-sizing: border-box;
+}
+#modal-close {
+}
+
+
+
+.modal {
+  /* display: none; */
+  position: fixed; 
+  padding-top: 50px;
+  left: 0; 
+  top: 0;
+  width: 100%;
+  height: 100%; 
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.modal-content {
+  position: relative; 
+  background-color: white;
+  padding: 20px; 
+  margin: auto; 
+  width: 75%;  
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+.close-btn {
+  float: right; 
+  color: lightgray; 
+  font-size: 24px;  
+  font-weight: bold;
+}
+.close-btn:hover {
+  color: darkgray;
+}
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
 </style>
 </head>
 <body>
@@ -141,6 +225,7 @@ table th {
       <div class="row-container">
         <div class="row">
           <button @click="newGame" data-key="new-game">new game</button>
+          <button @click="showModal(true)" data-key="share">share</button>
         </div>
       </div>
       <div class="row-container">
@@ -186,6 +271,14 @@ table th {
           <button @click="clicked" data-key="n">n</button>
           <button @click="clicked" data-key="m">m</button>
         </div>
+      </div>
+    </div>
+
+    <div v-if="modal" class="modal">
+      <div class="modal-content">
+        <div>{{ shareUrl }}</div>
+        <pre v-if="resultTxt">{{ resultTxt }}</pre>
+        <button @click="doShare">share</button> <button @click="showModal(false)">close</button>
       </div>
     </div>
   </div>
@@ -267,6 +360,9 @@ window.onload = async function () {
         word,
         showSolution: false,
         attempts,
+        shareUrl: window.location,
+        resultTxt: '',
+        modal: false,
       }
     },
     methods: {
@@ -322,21 +418,16 @@ window.onload = async function () {
           attemptRef.letters.forEach(l => {
             l.status = 'correct'
           })
-          alert('yay')
 
-          const attemptsShare = this.attempts.map(a => {
+          const resultTxt = this.attempts.map(a => {
             return a.letters.map(l => statusMap[l.status]).join('')
           })
             .filter(line => line)
             .join('\n')
-          const shareData = {
-            url: window.location,
-            text: attemptsShare,
-          }
-          console.log(shareData)
-          if (navigator.share) {
-            navigator.share(shareData)
-          }
+          console.log(resultTxt)
+
+          this.resultTxt = resultTxt
+          this.showModal(true)
         } else {
           attemptRef.letters.forEach((l, i) => {
             const kbKey = document.querySelector(`[data-key=${l.letter}]`)
@@ -383,7 +474,6 @@ window.onload = async function () {
         const gameParams = initGame()
         this.word = gameParams.word
         this.attempts = gameParams.attempts
-
         const searchParams = new URLSearchParams();
         // searchParams.set('l', 5);
         // searchParams.set('a', 6);
@@ -391,6 +481,23 @@ window.onload = async function () {
         // window.location.search = searchParams.toString();
         const newPath = window.location.pathname + '?' + searchParams.toString();
         history.pushState(null, '', newPath);
+      },
+      doShare() {
+        const shareData = {
+          url: this.shareUrl,
+          text: this.resultTxt,
+        }
+        console.log(shareData)
+        if (navigator.share) {
+          navigator.share(shareData)
+        }
+      },
+      showModal(show) {
+        if (show) {
+          this.modal = true
+        } else {
+          this.modal = false
+        }
       }
     }
   }
